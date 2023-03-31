@@ -13,7 +13,8 @@ namespace SpaceShooterGame
     {
         private Spaceship _spaceship;
         private FlyingObject _flyingObject;
-        public FormSpaceShooter(Spaceship spaceship, FlyingObject flyingObject)
+        private Rocket _rocket;
+        public FormSpaceShooter(Spaceship spaceship, FlyingObject flyingObject, Rocket rocket)
         {
             InitializeComponent();
             //Use double buffering to reduce the flicker.
@@ -21,10 +22,10 @@ namespace SpaceShooterGame
 
             _spaceship = spaceship;
             _flyingObject = flyingObject;
+            _rocket = rocket;
         }
 
         //Store images
-        Image rocket;
         Image background;
         Image explosion;
 
@@ -40,8 +41,6 @@ namespace SpaceShooterGame
         bool hit;
 
         //Store position and directions.
-        //int spaceShipX, spaceShipY;
-        int rocketX, rocketY, rocketDirY;
         int explosionX, explosionY;
 
         int score;
@@ -61,7 +60,6 @@ namespace SpaceShooterGame
 
             background = Image.FromFile(Application.StartupPath + @"\space-background.png");
 
-            rocket = Image.FromFile(Application.StartupPath + @"\rocket.png");
             explosion = Image.FromFile(Application.StartupPath + @"\explosion.png");
 
             //Load sound.
@@ -73,10 +71,7 @@ namespace SpaceShooterGame
             _spaceship.PosY = this.Height - _spaceship.SpaceshipImage.Height - 75;
 
             //Set pos of the screen.
-            rocketX = -100;
-
-            //Direction is set to 0 until we pres the button to shoot.
-            rocketDirY = 0;
+            _rocket.PosX = -100;
 
             //Set pos off the screen.
             explosionX = -100;
@@ -109,7 +104,7 @@ namespace SpaceShooterGame
 
             g.DrawImage(_flyingObject.Image, _flyingObject.PosX, _flyingObject.PosY);
 
-            g.DrawImage(rocket, rocketX, rocketY, 45, 45);
+            g.DrawImage(_rocket.Image, _rocket.PosX, _rocket.PosY, 45, 45);
             
             if (hit)
             {
@@ -128,8 +123,7 @@ namespace SpaceShooterGame
 
         private void Initialize()
         {
-            rocketX = -100;
-            rocketDirY = 0;
+            _rocket.PosX = -100;
 
             explosionX = -100;
 
@@ -157,9 +151,12 @@ namespace SpaceShooterGame
 
                 if (e.KeyCode == Keys.W)
                 {
-                    rocketX = _spaceship.PosX + 77;
-                    rocketY = _spaceship.PosY - 15;
-                    rocketDirY = 12;
+                    if (_rocket.Fired == false)
+                    {
+                        _rocket.PosX = _spaceship.PosX + 77;
+                        _rocket.PosY = _spaceship.PosY - 15;
+                        _rocket.Fired = true;
+                    }
                 }
             }
             Invalidate();
@@ -168,8 +165,9 @@ namespace SpaceShooterGame
         //Timer for rocket and stones movement.
         private void TimerRocket_Tick(object sender, EventArgs e)
         {  
-            //Pos Y for the rocket is 0 until we press the button.
-            rocketY += -rocketDirY;
+
+            if (_rocket.Fired == true)
+            _rocket.MovePosY(12);
 
             _flyingObject.PosX += _flyingObject.DirectionX;
             _flyingObject.PosY += _flyingObject.DirectionY;
@@ -178,37 +176,18 @@ namespace SpaceShooterGame
             _flyingObject.BounceOfTheFormBorders(ClientRectangle.Width, ClientRectangle.Height);
 
 
-            /*if (_flyingObject.PosX < 0)
-            {
-                _flyingObject.DirectionX = -_flyingObject.DirectionX;
-            }
-            else if (_flyingObject.PosX > ClientRectangle.Width - _flyingObject.Image.Width)
-            {
-                _flyingObject.DirectionX = -_flyingObject.DirectionX;
-            }
-            else if (_flyingObject.PosY < 0)
-            {
-                _flyingObject.DirectionY = -_flyingObject.DirectionY;
-            }
-            else if (_flyingObject.PosY > ClientRectangle.Height - _flyingObject.Image.Height)
-            {
-                _flyingObject.DirectionY = -_flyingObject.DirectionY;
-            }*/
-
             //Check if rocket reached the top without collision.
-            if (rocketY < 0)
-            {
-                rocketX = -100;
-                rocketDirY = 0;
-            }
+            _rocket.CheckIfTargetMissed();
+
             //Check for collision.
-            else if ((rocketX < _flyingObject.PosX + _flyingObject.Image.Width) && (rocketX + rocket.Width > _flyingObject.PosX) && (rocketY + rocket.Height > _flyingObject.PosY) && (_flyingObject.PosY + _flyingObject.Image.Height > rocketY) && hit == false)
+            if (_rocket.CheckForCollision(_flyingObject) && hit == false)
             {
                 hit = true;
                 score++;
                 explosionX = _flyingObject.PosX;
                 explosionY = _flyingObject.PosY;
             }
+
             Invalidate();
         }
 

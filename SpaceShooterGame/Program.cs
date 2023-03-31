@@ -1,4 +1,5 @@
 ﻿using SpaceShooterGame.GameComponents;
+using SpaceShooterGame.GameComponents.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace SpaceShooterGame
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FormSpaceShooter(new RedSpaceship(), new Stones()));
+            Application.Run(new FormSpaceShooter(new RedSpaceship(), new Stones(), new BlueAndYellowRocket()));
         }
     }
 }

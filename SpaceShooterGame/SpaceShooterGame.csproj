@@ -53,6 +53,8 @@
     <Compile Include="FormSpaceShooter.Designer.cs">
       <DependentUpon>FormSpaceShooter.cs</DependentUpon>
     </Compile>
+    <Compile Include="GameComponents\Abstractions\Rocket.cs" />
+    <Compile Include="GameComponents\BlueAndYellowRocket.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GameComponents\RedSpaceship.cs" />
