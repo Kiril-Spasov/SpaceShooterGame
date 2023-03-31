@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GameComponents\Abstractions\FlyingObject.cs" />
     <Compile Include="FormSpaceShooter.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -54,6 +55,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="GameComponents\RedSpaceship.cs" />
+    <Compile Include="GameComponents\Abstractions\Spaceship.cs" />
+    <Compile Include="GameComponents\Stones.cs" />
     <EmbeddedResource Include="FormSpaceShooter.resx">
       <DependentUpon>FormSpaceShooter.cs</DependentUpon>
     </EmbeddedResource>

@@ -1,8 +1,12 @@
-﻿using System;
+﻿using SpaceShooterGame.GameComponents;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
+
+
 
 namespace SpaceShooterGame
 {
@@ -16,7 +20,7 @@ namespace SpaceShooterGame
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FormSpaceShooter());
+            Application.Run(new FormSpaceShooter(new RedSpaceship(), new Stones()));
         }
     }
 }

@@ -3,26 +3,31 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Drawing.Drawing2D;
 using System.Media;
-
+using System.Globalization;
+using SpaceShooterGame.GameComponents;
+using SpaceShooterGame.GameComponents.Abstractions;
 
 namespace SpaceShooterGame
 {
     public partial class FormSpaceShooter : Form
     {
-        public FormSpaceShooter()
+        private Spaceship _spaceship;
+        private FlyingObject _flyingObject;
+        public FormSpaceShooter(Spaceship spaceship, FlyingObject flyingObject)
         {
             InitializeComponent();
             //Use double buffering to reduce the flicker.
             this.DoubleBuffered = true;
+
+            _spaceship = spaceship;
+            _flyingObject = flyingObject;
         }
 
         //Store images
-        Image[] spaceShipImages = new Image[12];
-        Image stones;
         Image rocket;
         Image background;
-        Image spaceShip;
         Image explosion;
+
 
         //Used for random positions.
         Random r = new Random();
@@ -30,14 +35,13 @@ namespace SpaceShooterGame
         SoundPlayer explosionSound = new SoundPlayer();
 
         //Used for spaceship animation counter.
-        int count = 0;
+        int animationCount = 0;
 
         bool hit;
 
         //Store position and directions.
-        int spaceShipX, spaceShipY;
+        //int spaceShipX, spaceShipY;
         int rocketX, rocketY, rocketDirY;
-        int stonesX, stonesY, stonesDirX, stonesDirY;
         int explosionX, explosionY;
 
         int score;
@@ -51,15 +55,12 @@ namespace SpaceShooterGame
 
         private void FormSpaceShooter_Load(object sender, EventArgs e)
         {
-            //Load images.
-            for (int i = 0; i <= 11; i++)
-            {
-                spaceShipImages[i] = Image.FromFile(Application.StartupPath + @"\space-ship-images\spaceship" + i.ToString() + "-removebg-preview.png");
-            }
-            spaceShip = spaceShipImages[0];
+            _spaceship.PosX = this.Width / 3;
+            _spaceship.PosY = this.Height - _spaceship.PosY - 75;
+
 
             background = Image.FromFile(Application.StartupPath + @"\space-background.png");
-            stones = Image.FromFile(Application.StartupPath + @"\stones.png");
+
             rocket = Image.FromFile(Application.StartupPath + @"\rocket.png");
             explosion = Image.FromFile(Application.StartupPath + @"\explosion.png");
 
@@ -68,8 +69,8 @@ namespace SpaceShooterGame
             explosionSound.LoadAsync();
 
             //Set start pos for the spaceship.
-            spaceShipX = this.Width / 3;
-            spaceShipY = this.Height - spaceShip.Height - 75;
+            _spaceship.PosX = this.Width / 3;
+            _spaceship.PosY = this.Height - _spaceship.SpaceshipImage.Height - 75;
 
             //Set pos of the screen.
             rocketX = -100;
@@ -81,12 +82,12 @@ namespace SpaceShooterGame
             explosionX = -100;
 
             //Set random initial X pos.
-            stonesX = r.Next(0, this.Width);
-            stonesY = 0;
+            _flyingObject.PosX = r.Next(0, this.Width);
+            _flyingObject.PosY = 0;
 
             //Set random initial X direction.
-            stonesDirX = r.Next(-15, 15);
-            stonesDirY = 15;
+            _flyingObject.DirectionX = r.Next(-15, 15);
+            _flyingObject.DirectionY = 15;
 
             hit = false;
             startFlag = false;
@@ -94,18 +95,20 @@ namespace SpaceShooterGame
 
         private void FormSpaceShooter_Paint(object sender, PaintEventArgs e)
         {
-            Graphics g = e.Graphics;
-            DrawGame(g);
+            DrawGame(e.Graphics);
         }
 
         private void DrawGame(Graphics g)
         {
             g.DrawImage(background, 0, 0);
+
             g.DrawString($"Score: " + score.ToString(), font, brush, 400, 10);
             g.DrawString($"Time left: " + timeLeft.ToString(), font, brush, 500, 10);
 
-            g.DrawImage(spaceShip, spaceShipX, spaceShipY, 200, 150);
-            g.DrawImage(stones, stonesX, stonesY);
+            g.DrawImage(_spaceship.SpaceshipImage, _spaceship.PosX, _spaceship.PosY, 200, 150);
+
+            g.DrawImage(_flyingObject.Image, _flyingObject.PosX, _flyingObject.PosY);
+
             g.DrawImage(rocket, rocketX, rocketY, 45, 45);
             
             if (hit)
@@ -130,11 +133,11 @@ namespace SpaceShooterGame
 
             explosionX = -100;
 
-            stonesX = r.Next(0, 500);
-            stonesY = 0;
+            _flyingObject.PosX = r.Next(0, 500);
+            _flyingObject.PosY = 0;
 
-            stonesDirX = r.Next(-15, 15);
-            stonesDirY = 15;
+            _flyingObject.DirectionX = r.Next(-15, 15);
+            _flyingObject.DirectionY = 15;
 
             hit = false;
         }
@@ -145,17 +148,17 @@ namespace SpaceShooterGame
             {
                 if (e.KeyCode == Keys.A)
                 {
-                    spaceShipX -= 5;
+                    _spaceship.MoveLeft(5);
                 }
                 else if (e.KeyCode == Keys.D)
                 {
-                    spaceShipX += 5;
+                    _spaceship.MoveRight(5);
                 }
 
                 if (e.KeyCode == Keys.W)
                 {
-                    rocketX = spaceShipX + 77;
-                    rocketY = spaceShipY - 15;
+                    rocketX = _spaceship.PosX + 77;
+                    rocketY = _spaceship.PosY - 15;
                     rocketDirY = 12;
                 }
             }
@@ -168,25 +171,25 @@ namespace SpaceShooterGame
             //Pos Y for the rocket is 0 until we press the button.
             rocketY += -rocketDirY;
 
-            stonesX += stonesDirX;
-            stonesY += stonesDirY;
+            _flyingObject.PosX += _flyingObject.DirectionX;
+            _flyingObject.PosY += _flyingObject.DirectionY;
 
             //Check if stones hit the wall, then bounce back.
-            if (stonesX < 0)
+            if (_flyingObject.PosX < 0)
             {
-                stonesDirX = -stonesDirX;
+                _flyingObject.DirectionX = -_flyingObject.DirectionX;
             }
-            else if (stonesX > ClientRectangle.Width - stones.Width)
+            else if (_flyingObject.PosX > ClientRectangle.Width - _flyingObject.Image.Width)
             {
-                stonesDirX = -stonesDirX;
+                _flyingObject.DirectionX = -_flyingObject.DirectionX;
             }
-            else if (stonesY < 0)
+            else if (_flyingObject.PosY < 0)
             {
-                stonesDirY = -stonesDirY;
+                _flyingObject.DirectionY = -_flyingObject.DirectionY;
             }
-            else if (stonesY > ClientRectangle.Height - stones.Height)
+            else if (_flyingObject.PosY > ClientRectangle.Height - _flyingObject.Image.Height)
             {
-                stonesDirY = -stonesDirY;
+                _flyingObject.DirectionY = -_flyingObject.DirectionY;
             }
 
             //Check if rocket reached the top without collision.
@@ -196,12 +199,12 @@ namespace SpaceShooterGame
                 rocketDirY = 0;
             }
             //Check for collision.
-            else if ((rocketX < stonesX + stones.Width) && (rocketX + rocket.Width > stonesX) && (rocketY + rocket.Height > stonesY) && (stonesY + stones.Height > rocketY) && hit == false)
+            else if ((rocketX < _flyingObject.PosX + _flyingObject.Image.Width) && (rocketX + rocket.Width > _flyingObject.PosX) && (rocketY + rocket.Height > _flyingObject.PosY) && (_flyingObject.PosY + _flyingObject.Image.Height > rocketY) && hit == false)
             {
                 hit = true;
                 score++;
-                explosionX = stonesX;
-                explosionY = stonesY;
+                explosionX = _flyingObject.PosX;
+                explosionY = _flyingObject.PosY;
             }
             Invalidate();
         }
@@ -252,10 +255,11 @@ namespace SpaceShooterGame
 
         private void TimerSpaceShip_Tick(object sender, EventArgs e)
         {
-            spaceShip = spaceShipImages[count];
-            count++;
-            if (count > 11)
-                count = 0;
+            _spaceship.SpaceshipImage = _spaceship.SpaceshipImages[animationCount];
+            animationCount++;
+
+            if (animationCount >= _spaceship.SpaceshipImages.Length - 1)
+                animationCount = 0;
 
             Invalidate();
         }
