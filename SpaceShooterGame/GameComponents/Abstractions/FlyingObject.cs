@@ -22,5 +22,12 @@ namespace SpaceShooterGame.GameComponents.Abstractions
 
         public Image Image { get => image; set => image = value; }
 
+        public abstract void BounceOfTheFormBorders(int formWidth, int formHeight);
+
+        public abstract void ChangeDirectionX();
+
+        public abstract void ChangeDirectionY();
+
+
     }
 }

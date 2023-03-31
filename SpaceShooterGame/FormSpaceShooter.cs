@@ -174,8 +174,11 @@ namespace SpaceShooterGame
             _flyingObject.PosX += _flyingObject.DirectionX;
             _flyingObject.PosY += _flyingObject.DirectionY;
 
-            //Check if stones hit the wall, then bounce back.
-            if (_flyingObject.PosX < 0)
+
+            _flyingObject.BounceOfTheFormBorders(ClientRectangle.Width, ClientRectangle.Height);
+
+
+            /*if (_flyingObject.PosX < 0)
             {
                 _flyingObject.DirectionX = -_flyingObject.DirectionX;
             }
@@ -190,7 +193,7 @@ namespace SpaceShooterGame
             else if (_flyingObject.PosY > ClientRectangle.Height - _flyingObject.Image.Height)
             {
                 _flyingObject.DirectionY = -_flyingObject.DirectionY;
-            }
+            }*/
 
             //Check if rocket reached the top without collision.
             if (rocketY < 0)
